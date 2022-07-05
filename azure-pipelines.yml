@@ -1,0 +1,29 @@
+pool:
+  name: Azure Pipelines
+
+steps:
+- task: Docker@0
+  displayName: 'Build an image'
+  inputs:
+    containerregistrytype: 'Container Registry'
+    dockerRegistryConnection: MSSDockerRegistry
+    additionalImageTags: |
+     alpha-$(Build.BuildId)
+     alpha
+
+- task: Docker@0
+  displayName: 'Push an image'
+  inputs:
+    containerregistrytype: 'Container Registry'
+    dockerRegistryConnection: MSSDockerRegistry
+    action: 'Push an image'
+    additionalImageTags: |
+     alpha-$(Build.BuildId)
+     alpha
+
+- task: SSH@0
+  displayName: 'Run shell inline on remote machine'
+  inputs:
+    sshEndpoint: Machine01
+    runOptions: inline
+    inline: 'sudo docker service update --update-delay=2m --update-monitor=30s --rollback-delay=20s --with-registry-auth --image registry.mss.ba/backend_reports:alpha reports_reports'
